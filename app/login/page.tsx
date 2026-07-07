@@ -70,12 +70,16 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-sm flex flex-col gap-7">
         <div className="flex items-center justify-between gap-4">
-          <div className="brand" style={{ marginBottom: 0 }}>
+          <Link
+            href="/"
+            className="brand"
+            style={{ marginBottom: 0, textDecoration: 'none', color: 'inherit' }}
+          >
             <div className="brand-mark">SV</div>
             <div className="brand-name">
               STREETVISION<span>ENGAGEMENT AI</span>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-2">
             <LangSwitch />
             <ThemeToggle />

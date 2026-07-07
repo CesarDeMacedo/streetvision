@@ -64,12 +64,20 @@ objetos organizados por pasta `{user_id}/{project_id}/...` com policies por pref
 
 ## 3. Rotas
 
-- `/login` — login/cadastro (fluxo do `Auth.tsx` do provador digital, re-estilizado pro tema escuro)
+Públicas (sem auth):
+- `/` — landing page: hero, Split View interativo embutido (imagens estáticas de `public/demo/`),
+  seção "como funciona" em 3 passos, CTAs para `/demo` e `/login`, rodapé com a stack
+- `/demo` — demonstração fixa da Parnell Rd (mesmo Split View/métricas do app, conteúdo pré-gerado,
+  sem chamadas à Edge Function nem consumo de rate limit), com CTA para criar conta
+- `/login` — login/cadastro (fluxo do `Auth.tsx` do provador digital, re-estilizado pro tema escuro),
+  com link para a demo
+
+Nas páginas públicas, o logo "SV" no cabeçalho leva de volta à landing (`/`).
+
+Autenticadas (atrás de `AuthGate` client-side; autorização real revalidada no servidor — RLS + `getUser()` na function):
 - `/projects` — lista de projetos do usuário
 - `/projects/new` — criar projeto (nome, endereço, foto) com **drag-and-drop + preview imediato** no dropzone
 - `/projects/[id]` — tela principal: gerar visualização + split view + métricas simuladas + histórico + download
-
-Todas atrás de `AuthGate` (client-side); a autorização real é revalidada no servidor (RLS + `getUser()` na function).
 
 ## 4. Lógica de negócio
 
@@ -150,3 +158,6 @@ mantendo o mesmo shape — a UI não muda. Nenhum cálculo real é feito no MVP.
 9. ✅ Deploy no Vercel (env vars: `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`;
    Site URL do Auth no Supabase apontando para o domínio de produção)
 10. ✅ Tema claro/escuro com toggle, persistência e ajuste de contraste dos overlays sobre foto
+11. ✅ Rota pública `/demo` (conteúdo fixo pré-gerado, sem custo de geração) + favicon `app/icon.svg`
+12. ✅ Landing page em `/` (hero + split view embutido + como funciona + CTAs); logo volta pra home
+    nas páginas públicas

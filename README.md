@@ -17,6 +17,7 @@ Engineering and planning firms today choose between expensive manual renders (V-
 - **Gemini 3 Pro Image** ("Nano Banana Pro") via `generateContent`, called only from a Supabase Edge Function — the Gemini API key never reaches the browser
 - Interface in **3 languages** (English default, French, Portuguese) with a runtime switcher — no i18n library, just a dictionary + React Context
 - **Light/dark theme toggle** (dark default), same no-library pattern: CSS variables + React Context, persisted in `localStorage`
+- **Public landing page (`/`) and fixed demo (`/demo`)** — evaluate the result without an account: interactive before/after slider with pre-generated content, no Edge Function calls, no generation cost
 
 ## Why Gemini 3 Pro Image (and not 2.5 Flash Image)
 

@@ -17,12 +17,16 @@ export default function DemoPage() {
     <div className="min-h-screen px-6 py-8 flex justify-center">
       <div className="w-full" style={{ maxWidth: 980 }}>
         <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
-          <div className="brand" style={{ marginBottom: 0 }}>
+          <Link
+            href="/"
+            className="brand"
+            style={{ marginBottom: 0, textDecoration: 'none', color: 'inherit' }}
+          >
             <div className="brand-mark">SV</div>
             <div className="brand-name">
               STREETVISION<span>ENGAGEMENT AI</span>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-2">
             <LangSwitch />
             <ThemeToggle />
