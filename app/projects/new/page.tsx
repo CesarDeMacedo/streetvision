@@ -1,23 +1,52 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { DragEvent, FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AuthGate from '@/components/AuthGate'
 import AppShell from '@/components/AppShell'
 import { getSupabase } from '@/lib/supabaseClient'
+import { useI18n } from '@/lib/i18n'
 
 function NewProjectForm({ userId }: { userId: string }) {
   const router = useRouter()
+  const { t } = useI18n()
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [photo, setPhoto] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [dragOver, setDragOver] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // preview imediato da foto selecionada/arrastada
+  useEffect(() => {
+    if (!photo) {
+      setPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(photo)
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [photo])
+
+  function acceptFile(file: File | undefined) {
+    if (file && file.type.startsWith('image/')) {
+      setPhoto(file)
+      setError(null)
+    }
+  }
+
+  function handleDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    setDragOver(false)
+    acceptFile(e.dataTransfer.files?.[0])
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!photo) {
-      setError('Selecione uma foto do local.')
+      setError(t('newProject.photoRequired'))
       return
     }
     setSaving(true)
@@ -30,7 +59,7 @@ function NewProjectForm({ userId }: { userId: string }) {
       .select()
       .single()
     if (insertError || !project) {
-      setError(insertError?.message ?? 'Falha ao criar o projeto.')
+      setError(insertError?.message ?? t('newProject.createFail'))
       setSaving(false)
       return
     }
@@ -43,7 +72,7 @@ function NewProjectForm({ userId }: { userId: string }) {
     if (uploadError) {
       // sem a foto o projeto não serve para nada — desfaz a criação
       await supabase.from('projects').delete().eq('id', project.id)
-      setError(`Falha no upload da foto: ${uploadError.message}`)
+      setError(t('newProject.uploadFail', { msg: uploadError.message }))
       setSaving(false)
       return
     }
@@ -62,48 +91,77 @@ function NewProjectForm({ userId }: { userId: string }) {
   }
 
   return (
-    <AppShell title="Novo Projeto" subtitle="Nome do local, endereço e foto atual">
+    <AppShell title={t('newProject.title')} subtitle={t('newProject.subtitle')}>
       <form onSubmit={handleSubmit} className="panel flex flex-col gap-4 max-w-xl">
         <div className="field">
-          <label>Nome do local</label>
+          <label>{t('newProject.name')}</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="ex: St. Paul St & Church St"
+            placeholder={t('newProject.namePh')}
             required
           />
         </div>
         <div className="field">
-          <label>Endereço</label>
+          <label>{t('newProject.address')}</label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="ex: St. Catharines, ON"
+            placeholder={t('newProject.addressPh')}
           />
         </div>
         <div className="field">
-          <label>Foto do local</label>
-          <label className="dropzone" style={{ minHeight: 110 }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M12 16V4M12 4l-4 4M12 4l4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" />
-            </svg>
-            {photo ? photo.name : 'Clique para selecionar a foto (Street View ou câmera)'}
+          <label>{t('newProject.photo')}</label>
+          <div
+            className={`dropzone${dragOver ? ' drag-over' : ''}`}
+            style={{ minHeight: 110 }}
+            role="button"
+            tabIndex={0}
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
+            }}
+            onDragOver={(e) => {
+              e.preventDefault()
+              setDragOver(true)
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+          >
+            {previewUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={previewUrl} alt={photo?.name ?? ''} className="preview" />
+                <span>
+                  {photo?.name} — {t('newProject.changePhoto')}
+                </span>
+              </>
+            ) : (
+              <>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M12 16V4M12 4l-4 4M12 4l4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" />
+                </svg>
+                {t('newProject.dropzone')}
+              </>
+            )}
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               className="hidden"
-              onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => acceptFile(e.target.files?.[0])}
             />
-          </label>
+          </div>
         </div>
 
         {error && <p className="error-text m-0">{error}</p>}
 
         <button type="submit" disabled={saving} className="btn-primary">
           {saving && <div className="spinner" />}
-          {saving ? 'Criando…' : 'Criar Projeto'}
+          {saving ? t('newProject.creating') : t('newProject.submit')}
         </button>
       </form>
     </AppShell>

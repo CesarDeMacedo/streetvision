@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabaseClient'
+import { useI18n } from '@/lib/i18n'
+import LangSwitch from '@/components/LangSwitch'
 
 type Props = {
   title: string
@@ -14,6 +16,7 @@ type Props = {
 
 export default function AppShell({ title, subtitle, meta, rightPanel, children }: Props) {
   const router = useRouter()
+  const { t } = useI18n()
 
   async function handleLogout() {
     await getSupabase().auth.signOut()
@@ -32,19 +35,21 @@ export default function AppShell({ title, subtitle, meta, rightPanel, children }
         <nav className="nav">
           <Link href="/projects" className="nav-item active">
             <div className="dot" />
-            Projetos
+            {t('nav.projects')}
           </Link>
         </nav>
-        <div className="nav-step-label">Sessão</div>
+        <div className="nav-step-label">{t('nav.language')}</div>
+        <div style={{ padding: '0 10px' }}>
+          <LangSwitch />
+        </div>
+        <div className="nav-step-label">{t('nav.session')}</div>
         <nav className="nav">
           <button type="button" className="nav-item" onClick={handleLogout}>
             <div className="dot" />
-            Sair
+            {t('nav.logout')}
           </button>
         </nav>
-        <div className="sidebar-footer">
-          Motor de imagem: Gemini 3 Pro Image (Nano Banana Pro) · via Supabase Edge Function
-        </div>
+        <div className="sidebar-footer">{t('footer.engine')}</div>
       </div>
 
       <div>

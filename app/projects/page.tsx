@@ -5,9 +5,11 @@ import Link from 'next/link'
 import AuthGate from '@/components/AuthGate'
 import AppShell from '@/components/AppShell'
 import { getSupabase } from '@/lib/supabaseClient'
+import { LOCALES, useI18n } from '@/lib/i18n'
 import type { Project } from '@/lib/types'
 
 function ProjectList() {
+  const { t, lang } = useI18n()
   const [projects, setProjects] = useState<Project[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,11 +26,11 @@ function ProjectList() {
 
   return (
     <AppShell
-      title="Projetos"
-      subtitle="Locais e intersecções sendo visualizados"
+      title={t('projects.title')}
+      subtitle={t('projects.subtitle')}
       meta={
         <Link href="/projects/new" className="btn-primary" style={{ textDecoration: 'none' }}>
-          + Novo Projeto
+          {t('projects.new')}
         </Link>
       }
     >
@@ -36,7 +38,7 @@ function ProjectList() {
       {!projects && !error && <div className="spinner" />}
       {projects && projects.length === 0 && (
         <div className="panel text-center" style={{ color: 'var(--muted)' }}>
-          Nenhum projeto ainda. Crie o primeiro com nome, endereço e uma foto do local.
+          {t('projects.empty')}
         </div>
       )}
       <div className="flex flex-col gap-3">
@@ -46,11 +48,11 @@ function ProjectList() {
               <div>
                 <div className="font-semibold text-[14px]">{p.name}</div>
                 <div className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
-                  {p.address || 'Sem endereço'}
+                  {p.address || t('projects.noAddress')}
                 </div>
               </div>
               <div className="text-[11px]" style={{ color: 'var(--muted)' }}>
-                {new Date(p.created_at).toLocaleDateString('pt-BR')}
+                {new Date(p.created_at).toLocaleDateString(LOCALES[lang])}
               </div>
             </div>
           </Link>

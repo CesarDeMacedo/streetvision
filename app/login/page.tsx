@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabaseClient'
+import { useI18n } from '@/lib/i18n'
+import LangSwitch from '@/components/LangSwitch'
 
 type Mode = 'login' | 'signup'
 
@@ -10,6 +12,7 @@ type Mode = 'login' | 'signup'
 // re-estilizado para a identidade escura do mockup.
 export default function LoginPage() {
   const router = useRouter()
+  const { t } = useI18n()
   const [mode, setMode] = useState<Mode>('login')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -64,18 +67,21 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-sm flex flex-col gap-7">
-        <div className="brand" style={{ marginBottom: 0 }}>
-          <div className="brand-mark">SV</div>
-          <div className="brand-name">
-            STREETVISION<span>ENGAGEMENT AI</span>
+        <div className="flex items-center justify-between gap-4">
+          <div className="brand" style={{ marginBottom: 0 }}>
+            <div className="brand-mark">SV</div>
+            <div className="brand-name">
+              STREETVISION<span>ENGAGEMENT AI</span>
+            </div>
           </div>
+          <LangSwitch />
         </div>
 
         {checkEmail ? (
           <div className="panel flex flex-col gap-4 text-center">
-            <h1 className="text-lg m-0">Confira seu e-mail</h1>
+            <h1 className="text-lg m-0">{t('login.checkEmail.title')}</h1>
             <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
-              Enviamos um link de confirmação para <b>{email}</b>. Confirme a conta e faça login.
+              {t('login.checkEmail.body', { email })}
             </p>
             <button
               className="btn-primary"
@@ -84,21 +90,19 @@ export default function LoginPage() {
                 setMode('login')
               }}
             >
-              Voltar ao login
+              {t('login.checkEmail.back')}
             </button>
           </div>
         ) : (
           <div className="panel">
-            <h1 className="text-lg mt-0 mb-1">{mode === 'login' ? 'Entrar' : 'Criar conta'}</h1>
+            <h1 className="text-lg mt-0 mb-1">{t(`login.title.${mode}`)}</h1>
             <p className="text-xs mb-5" style={{ color: 'var(--muted)' }}>
-              {mode === 'login'
-                ? 'Acesse para gerar visualizações de intervenções urbanas.'
-                : 'Crie uma conta para começar.'}
+              {t(`login.sub.${mode}`)}
             </p>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               {mode === 'signup' && (
                 <div className="field">
-                  <label>Nome completo</label>
+                  <label>{t('login.fullName')}</label>
                   <input
                     type="text"
                     value={fullName}
@@ -108,7 +112,7 @@ export default function LoginPage() {
                 </div>
               )}
               <div className="field">
-                <label>E-mail</label>
+                <label>{t('login.email')}</label>
                 <input
                   type="email"
                   value={email}
@@ -117,7 +121,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="field">
-                <label>Senha</label>
+                <label>{t('login.password')}</label>
                 <input
                   type="password"
                   value={password}
@@ -131,7 +135,7 @@ export default function LoginPage() {
 
               <button type="submit" disabled={loading} className="btn-primary">
                 {loading && <div className="spinner" />}
-                {loading ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta'}
+                {loading ? t('login.wait') : t(`login.submit.${mode}`)}
               </button>
             </form>
             <button
@@ -139,7 +143,7 @@ export default function LoginPage() {
               className="link-btn mt-4"
               style={{ color: 'var(--muted)' }}
             >
-              {mode === 'login' ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entre'}
+              {mode === 'login' ? t('login.switch.toSignup') : t('login.switch.toLogin')}
             </button>
           </div>
         )}

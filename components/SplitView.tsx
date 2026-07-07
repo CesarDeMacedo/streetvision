@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useI18n } from '@/lib/i18n'
 
 type Props = {
   beforeUrl: string | null
@@ -11,6 +12,7 @@ type Props = {
 // Split View do streetvision-mockup.html convertido em componente controlado:
 // a posição do slider vive em useState e move o clip-path da imagem "depois".
 export default function SplitView({ beforeUrl, afterUrl, emptyMessage }: Props) {
+  const { t } = useI18n()
   const [pos, setPos] = useState(52)
   // proporção real da foto — o container acompanha para nunca cortar a imagem
   const [ratio, setRatio] = useState<number | null>(null)
@@ -55,8 +57,8 @@ export default function SplitView({ beforeUrl, afterUrl, emptyMessage }: Props) 
           <div className="split-half split-after" style={{ clipPath: `inset(0 0 0 ${pos}%)` }}>
             <img src={afterUrl} alt="Depois — proposta" draggable={false} />
           </div>
-          <div className="tag tag-before">● ANTES — ATUAL</div>
-          <div className="tag tag-after">● DEPOIS — PROPOSTA</div>
+          <div className="tag tag-before">{t('split.before')}</div>
+          <div className="tag tag-after">{t('split.after')}</div>
           <div
             className="handle"
             style={{ left: `${pos}%` }}
@@ -72,9 +74,7 @@ export default function SplitView({ beforeUrl, afterUrl, emptyMessage }: Props) 
           </div>
         </>
       ) : (
-        <div className="split-empty">
-          {emptyMessage ?? 'Gere uma visualização para comparar antes e depois.'}
-        </div>
+        <div className="split-empty">{emptyMessage ?? t('project.emptyHint')}</div>
       )}
     </div>
   )
