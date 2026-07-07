@@ -20,10 +20,12 @@ Um engenheiro/planejador (o próprio usuário simulando esse papel) que:
 ## 3. Escopo do MVP
 
 - Autenticação obrigatória (reaproveitando o padrão do app "provador digital" — gated atrás de login, evita gasto indevido de cota paga)
-- Criar "projeto" (nome do local, endereço, foto do local)
+- Criar "projeto" (nome do local, endereço, foto do local) — upload com drag-and-drop e preview imediato
 - Tela de geração: upload de foto + prompt descritivo + atalhos rápidos (chips: ciclovia protegida, arborização, calçada alargada, mobiliário urbano)
-- Botão "Gerar Visualização" → chama Edge Function → Gemini 2.5 Flash Image (Nano Banana) → salva resultado
+- Botão "Gerar Visualização" → chama Edge Function → Gemini 3 Pro Image (Nano Banana Pro; ver nota de modelo no SPEC.md §1) → salva resultado
 - Split View antes/depois com slider arrastável (reaproveitar o layout já validado no mockup `streetvision-mockup.html`)
+- Métricas de impacto **simuladas** com preview visual (stat cards + "Elementos da Proposta"), claramente marcadas com badge "SIMULATED DATA" — comunicam a visão do produto sem passar por dado real
+- Interface em 3 idiomas (inglês padrão, francês, português) com seletor em runtime
 - Histórico de visualizações por projeto (lista simples)
 - Exportar/baixar a imagem gerada
 
@@ -31,7 +33,7 @@ Um engenheiro/planejador (o próprio usuário simulando esse papel) que:
 
 - Geração de múltiplas variações em paralelo (custo — decidir depois de validar geração única)
 - Busca automática de foto via Street View/endereço (MVP é upload manual)
-- Métricas de impacto reais (capacidade de pessoas/hora, etc.) — no MVP ficam como campos manuais ou placeholder, nunca calculadas de verdade
+- **Cálculo real** de métricas de impacto (capacidade de pessoas/hora, área verde etc.) — o MVP exibe apenas valores simulados com badge; a estrutura para trocar por cálculo real está pronta (`lib/mockImpact.ts`), mas nenhum cálculo é feito
 - Múltiplos usuários/permissões, cobrança, papéis de acesso
 - Exportação em PDF formatado — no MVP é só download da imagem
 

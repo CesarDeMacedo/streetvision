@@ -2,7 +2,9 @@
 
 This is StreetVision AI, a tool that generates before/after photorealistic visualizations
 of street/infrastructure interventions (bike lanes, sidewalks, trees) for public engagement
-materials, using Gemini 2.5 Flash Image ("Nano Banana") via a Supabase Edge Function.
+materials, using Gemini 3 Pro Image ("Nano Banana Pro", model id gemini-3-pro-image) via a
+Supabase Edge Function. Do NOT downgrade to gemini-2.5-flash-image: it corrupted in-scene
+text (street names) inconsistently during validation — that is why the Pro model was chosen.
 
 Read PRD.md for product scope and SPEC.md for data model, routes, and business logic
 before making changes.
@@ -20,5 +22,16 @@ IMPORTANT: the prompt sent to Gemini must explicitly instruct preservation of bu
 camera angle, and lighting — this is the highest-risk part of the project and must be validated
 manually (step 5 of SPEC.md) before building further UI.
 
+The UI is trilingual (EN default / FR / PT) via lib/i18n.tsx — a plain dictionary + React
+Context, deliberately no i18n library. Every user-facing string must go through t(); add new
+strings to all three languages.
+
+All FKs have ON DELETE CASCADE (migration 20260707200000) so test users can be deleted from
+the Supabase dashboard; Storage files are NOT cascaded and become orphans.
+
+Impact metrics in the UI are simulated placeholders (lib/mockImpact.ts) badged "SIMULATED
+DATA" — never present them as real, and don't implement real calculations without asking.
+
 Do not add features outside PRD.md's MVP scope without asking first.
-Daily generation rate limit must be implemented and tested before any other feature ships.
+Daily generation rate limit (5/day) is enforced server-side inside the generate-image Edge
+Function — keep it there; the front-end counter is display-only.

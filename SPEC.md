@@ -1,109 +1,133 @@
 # SPEC — StreetVision AI
 
+> Atualizado em 2026-07-07 para refletir o que foi realmente construído.
+> Divergências em relação ao plano original estão marcadas com **[mudança]** e o motivo.
+
 ## 1. Stack
 
-Next.js (App Router) + TypeScript + Tailwind CSS + Supabase (Postgres + Auth + Storage).
-Geração de imagem: Supabase Edge Function → Gemini 2.5 Flash Image ("Nano Banana") via `generateContent`.
+Next.js 15 (App Router) + TypeScript + Tailwind CSS + Supabase (Postgres + Auth + Storage + Edge Functions).
 
-## 2. Modelo de dados (migração única, mesmo padrão do Site Log)
+Geração de imagem: Supabase Edge Function → **`gemini-3-pro-image`** ("Nano Banana Pro") via `generateContent`.
+
+**[mudança]** O plano original usava `gemini-2.5-flash-image` (~US$0,04/imagem). Na validação manual
+(etapa 5 abaixo) ele corrompia texto da cena de forma inconsistente — o nome de rua pintado no asfalto
+("Parnell Rd") saía como "Burnell"/"Bnell" mesmo com instrução explícita de preservação caractere a
+caractere no prompt. Como o produto alveja documentos de consulta pública, fidelidade de texto é
+inegociável; `gemini-3-pro-image` (~US$0,13/imagem) resolveu de forma consistente com mudança de uma
+linha. Não voltar ao Flash sem revalidar fidelidade de texto.
+
+## 2. Modelo de dados (estado atual — migrações `20260707000000_init` + `20260707200000_cascade_deletes`)
 
 ```sql
 -- projects: um projeto = um local/intersecção sendo visualizado
 create table projects (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
   name text not null,
   address text,
+  photo_path text,                        -- [mudança] foto inicial do local (bucket street-photos);
+                                          -- a rota /projects/new exige foto e o modelo original
+                                          -- não tinha onde guardá-la
   created_at timestamptz default now()
 );
 
 -- visualizations: cada geração de imagem dentro de um projeto
 create table visualizations (
   id uuid primary key default gen_random_uuid(),
-  project_id uuid references projects(id) not null,
-  original_photo_path text not null,      -- caminho no Supabase Storage
+  project_id uuid references projects(id) on delete cascade not null,
+  original_photo_path text not null,
   prompt text not null,
-  generated_image_path text,              -- caminho no Supabase Storage (null até a geração terminar)
-  cost_usd numeric(6,4) default 0.039,
+  generated_image_path text,              -- null até a geração terminar
+  cost_usd numeric(6,4) default 0.134,    -- custo do gemini-3-pro-image
   status text default 'pending',          -- pending | done | failed
   created_at timestamptz default now()
 );
 
--- generation_limits: controle simples de cota diária por usuário
+-- generation_limits: cota diária por usuário (escrita só pela Edge Function via service role)
 create table generation_limits (
-  user_id uuid references auth.users(id) primary key,
+  user_id uuid references auth.users(id) on delete cascade primary key,
   date date not null default current_date,
   count int not null default 0
 );
 ```
 
-Storage: bucket `street-photos` (fotos originais) e `generated-images` (resultados), ambos privados, acesso via signed URL.
+**[mudança]** Todas as FKs têm `on delete cascade` (migração 2): sem isso, deletar um usuário de teste
+no painel falhava com "Database error deleting user". Arquivos no Storage **não** entram no cascade —
+ficam órfãos nos buckets (limpeza manual, se necessário).
+
+**RLS** em todas as tabelas: `projects`/`visualizations` com leitura/escrita restritas ao dono
+(via `auth.uid()`); `generation_limits` é somente leitura para o próprio usuário — quem escreve é a
+Edge Function com service role.
+
+Storage: buckets `street-photos` e `generated-images`, ambos privados, acesso via signed URL,
+objetos organizados por pasta `{user_id}/{project_id}/...` com policies por prefixo de pasta.
 
 ## 3. Rotas
 
-- `/login` — reaproveita o `Auth.tsx` já validado no provador digital
+- `/login` — login/cadastro (fluxo do `Auth.tsx` do provador digital, re-estilizado pro tema escuro)
 - `/projects` — lista de projetos do usuário
-- `/projects/new` — criar projeto (nome, endereço, foto inicial)
-- `/projects/[id]` — tela principal: gerar visualização + split view + histórico
+- `/projects/new` — criar projeto (nome, endereço, foto) com **drag-and-drop + preview imediato** no dropzone
+- `/projects/[id]` — tela principal: gerar visualização + split view + métricas simuladas + histórico + download
+
+Todas atrás de `AuthGate` (client-side); a autorização real é revalidada no servidor (RLS + `getUser()` na function).
 
 ## 4. Lógica de negócio
 
-**Rate limit (crítico, implementar antes de qualquer outra feature):**
-Antes de chamar a Edge Function, verificar `generation_limits` do usuário para o dia atual. Se `count >= limite_diário` (ex: 5), bloquear no front-end com mensagem clara e não chamar a function. Incrementar `count` só depois de uma geração `done` com sucesso.
+**Rate limit (5 gerações/dia por usuário):**
+**[mudança]** Enforçado **dentro da Edge Function**, não no front-end como no plano original — checagem
+client-side seria burlável chamando a function direto. A function consulta `generation_limits` antes de
+chamar o Gemini (retorna HTTP 429 no limite) e incrementa **só após** geração bem-sucedida, via service
+role. O front-end apenas exibe o contador ("X / 5" na topbar) e desabilita o botão.
 
-**Prompt template (Edge Function):**
-Adaptar a function `generate-image` já existente no provador digital. Estrutura sugerida do prompt enviado ao Gemini:
+**Prompt template final (Edge Function `generate-image`):**
 
 ```
 Modify this street photo according to the following changes: {descrição do usuário}.
-Preserve exactly: building facades, camera angle, perspective, lighting, and time of day.
+Preserve exactly: building facades, camera angle, perspective, lighting, time of day,
+and any text, street signs, pavement markings, or lettering — character by character,
+in the same position and orientation as the original.
 Only modify: road surface, lane markings, sidewalks, and roadside elements as described.
+Do not alter, regenerate, or reinterpret any existing text in the image.
 Output a photorealistic result suitable for a professional public consultation document.
 ```
 
-Esse template é o ponto mais incerto do projeto — testar antes de investir na UI completa (ver seção 6 do PRD).
+**[mudança]** As linhas de preservação de texto foram adicionadas após a primeira rodada de validação
+(o template original não mencionava texto). A cláusula "Preserve exactly" é a parte de maior risco do
+produto — não reescrever sem repetir a validação manual com fotos reais.
 
-**Split View:**
-Reaproveitar exatamente o componente HTML/CSS/JS já construído em `streetvision-mockup.html` (slider arrastável com clip-path), convertendo pra componente React controlado por estado (`useState` pra posição do slider).
+**Fluxo de geração (client → function):** insere linha `pending` em `visualizations` → baixa a foto do
+projeto do Storage → chama a function (multipart: `photo` + `description`, Bearer token do usuário) →
+sobe o resultado em `generated-images` → marca `done` (ou `failed`, exibindo o erro).
 
-## 5. Ordem de construção sugerida (para sessões de Claude Code / Fable)
+**Split View:** componente React (`components/SplitView.tsx`) portado do mockup, slider controlado por
+`useState` + pointer events. O container adota o `aspect-ratio` real da foto carregada e as imagens usam
+`object-fit: contain` — a foto original nunca é cortada, em qualquer largura de tela.
 
-1. Scaffold Next.js + Tailwind + Supabase, reaproveitando a configuração de `.env` do projeto do provador digital.
-2. Implementar autenticação (`Auth.tsx` reaproveitado), gate no app inteiro.
-3. Migração SQL única com as 3 tabelas acima + criação dos 2 buckets de Storage.
-4. Adaptar a Edge Function `generate-image` existente: novo prompt template, novos parâmetros de entrada (foto do local + descrição, em vez de foto da pessoa + roupa).
-5. **Validar o prompt manualmente primeiro** — antes de construir qualquer tela, rodar a function adaptada com 1-2 fotos reais de rua e conferir se a geometria/prédios se mantêm fiéis. Não seguir para o passo 6 sem essa validação.
-6. Construir `/projects` (listar/criar) com upload de foto pro Storage.
-7. Construir a tela de geração dentro de `/projects/[id]`: prompt + chips rápidos + botão gerar, com o rate limit da seção 4 aplicado.
-8. Converter o Split View do mockup em componente React, integrado ao resultado real da geração.
-9. Adicionar histórico de visualizações do projeto (lista simples, reaproveitando padrão de tabela do Site Log).
-10. Adicionar botão de download da imagem gerada.
+## 5. i18n
 
-## 6. `CLAUDE.md` sugerido para a raiz do repo
+`lib/i18n.tsx`: dicionário EN/FR/PT (~90 chaves, todas as telas) + React Context (`LanguageProvider` /
+`useI18n`), com seletor EN|FR|PT na sidebar e no login, persistência em `localStorage` e datas por locale.
+**Inglês é o padrão** (público-alvo do portfólio). Decisão de escopo: sem biblioteca de i18n
+(next-intl etc.), sem rotas por idioma, sem SEO multilíngue — só troca de texto na interface.
+Mensagens de erro vindas do servidor (Edge Function) permanecem em inglês.
 
-```markdown
-# Project context for Claude Code / Fable
+## 6. Métricas de impacto (simuladas)
 
-This is StreetVision AI, a tool that generates before/after photorealistic visualizations
-of street/infrastructure interventions (bike lanes, sidewalks, trees) for public engagement
-materials, using Gemini 2.5 Flash Image ("Nano Banana") via a Supabase Edge Function.
+`lib/mockImpact.ts`: stat cards (Faixas de Carro, Área Verde, Capacidade Ciclistas, Impacto no Tráfego)
+e lista "Elementos da Proposta", com os valores fixos do mockup validado. Ambas as seções levam o badge
+**"⚠ SIMULATED DATA"** na UI — o objetivo é comunicar a visão do produto sem passar por dado real.
+Contrato para o futuro: substituir as constantes por uma função (ex: `computeImpact(project, viz)`)
+mantendo o mesmo shape — a UI não muda. Nenhum cálculo real é feito no MVP.
 
-Read PRD.md for product scope and SPEC.md for data model, routes, and business logic
-before making changes.
+## 7. Histórico de construção (etapas concluídas)
 
-Stack: Next.js (App Router) + TypeScript + Tailwind + Supabase (Postgres + Auth + Storage).
-
-Reuse patterns already validated in the sibling project (digital fitting room app):
-- Supabase Edge Function calling Gemini directly, API key only as a server secret
-- Auth gate validating the real user token via supabase.auth.getUser(), never trusting the anon key alone
-
-Visual identity: dark theme, blue accent (#3b82f6), sidebar + split-view + impact panel layout —
-see streetvision-mockup.html in this repo for the validated reference layout.
-
-IMPORTANT: the prompt sent to Gemini must explicitly instruct preservation of building facades,
-camera angle, and lighting — this is the highest-risk part of the project and must be validated
-manually (step 5 of SPEC.md) before building further UI.
-
-Do not add features outside PRD.md's MVP scope without asking first.
-Daily generation rate limit must be implemented and tested before any other feature ships.
-```
+1. ✅ Edge Function `generate-image` adaptada do provador digital e deployada **antes de qualquer tela**
+2. ✅ Validação manual do prompt com fotos reais (2 rodadas de ajuste: preservação de texto no prompt → troca de modelo)
+3. ✅ Migração única (3 tabelas + RLS + buckets) via `supabase db push`
+4. ✅ Rate limit server-side na function
+5. ✅ Telas: `/login`, `/projects`, `/projects/new`, `/projects/[id]` (split view, histórico, download)
+6. ✅ Correção de responsividade do Split View (aspect-ratio; testado em 1920px e 1366px)
+7. ✅ Métricas simuladas + i18n (EN/FR/PT) + drag-and-drop com preview
+8. ✅ Cascade deletes (migração 2)
+9. ⏳ Deploy no Vercel (env vars: `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`;
+   configurar Site URL do Auth no Supabase para o domínio de produção)
