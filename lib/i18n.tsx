@@ -51,6 +51,24 @@ const en = {
   'demo.cta': 'Create a free account and try your own street',
   'demo.login': 'Log in',
 
+  'landing.title': 'Street intervention visualizations for public engagement',
+  'landing.subtitle':
+    'Photorealistic before/after images of bike lanes, wider sidewalks and tree planting — generated from a real photo of the site in seconds, ready for public consultation materials.',
+  'landing.ctaDemo': 'View demo',
+  'landing.ctaSignup': 'Create account',
+  'landing.previewCaption': 'Real generated result — drag the slider to compare',
+  'landing.how': 'How it works',
+  'landing.step1.title': 'Real photo of the site',
+  'landing.step1.desc': 'Upload a photo of the street or intersection — from a camera or Street View.',
+  'landing.step2.title': 'Describe the intervention',
+  'landing.step2.desc':
+    'Free text plus quick shortcuts: protected bike lane, tree planting, wider sidewalk, street furniture.',
+  'landing.step3.title': 'AI generates the result',
+  'landing.step3.desc':
+    'Building facades, camera angle, lighting and signage are preserved — compare before/after with a draggable slider and export the image.',
+  'landing.footer':
+    'Built with Next.js, Supabase (Postgres · Auth · Storage · Edge Functions) and Gemini 3 Pro Image.',
+
   'projects.title': 'Projects',
   'projects.subtitle': 'Locations and intersections being visualized',
   'projects.new': '+ New Project',
@@ -178,6 +196,25 @@ const fr: Record<MessageKey, string> = {
   'demo.cta': 'Créez un compte gratuit et essayez votre propre rue',
   'demo.login': 'Se connecter',
 
+  'landing.title': "Visualisations d'interventions de rue pour l'engagement public",
+  'landing.subtitle':
+    "Images photoréalistes avant/après de pistes cyclables, trottoirs élargis et plantations d'arbres — générées à partir d'une vraie photo du site en quelques secondes, prêtes pour les documents de consultation publique.",
+  'landing.ctaDemo': 'Voir la démo',
+  'landing.ctaSignup': 'Créer un compte',
+  'landing.previewCaption': 'Résultat réellement généré — faites glisser le curseur pour comparer',
+  'landing.how': 'Comment ça marche',
+  'landing.step1.title': 'Photo réelle du site',
+  'landing.step1.desc':
+    "Téléversez une photo de la rue ou de l'intersection — caméra ou Street View.",
+  'landing.step2.title': "Décrivez l'intervention",
+  'landing.step2.desc':
+    'Texte libre plus raccourcis rapides : piste cyclable protégée, plantation d’arbres, trottoir élargi, mobilier urbain.',
+  'landing.step3.title': "L'IA génère le résultat",
+  'landing.step3.desc':
+    "Façades, angle de caméra, éclairage et signalisation sont préservés — comparez avant/après avec un curseur et exportez l'image.",
+  'landing.footer':
+    'Construit avec Next.js, Supabase (Postgres · Auth · Storage · Edge Functions) et Gemini 3 Pro Image.',
+
   'projects.title': 'Projets',
   'projects.subtitle': 'Lieux et intersections en cours de visualisation',
   'projects.new': '+ Nouveau projet',
@@ -304,6 +341,24 @@ const pt: Record<MessageKey, string> = {
     'Esta é uma demonstração fixa com um resultado pré-gerado — não gera imagens novas. A foto é de uma rua real; o "depois" foi gerado pelo StreetVision AI preservando fachadas, ângulo de câmera, iluminação e o nome da rua pintado no asfalto.',
   'demo.cta': 'Crie uma conta gratuita e teste com a sua rua',
   'demo.login': 'Entrar',
+
+  'landing.title': 'Visualizações de intervenções de rua para engajamento público',
+  'landing.subtitle':
+    'Imagens fotorrealistas antes/depois de ciclovias, calçadas alargadas e arborização — geradas a partir de uma foto real do local em segundos, prontas para materiais de consulta pública.',
+  'landing.ctaDemo': 'Ver demonstração',
+  'landing.ctaSignup': 'Criar conta',
+  'landing.previewCaption': 'Resultado gerado de verdade — arraste o slider para comparar',
+  'landing.how': 'Como funciona',
+  'landing.step1.title': 'Foto real do local',
+  'landing.step1.desc': 'Suba uma foto da rua ou intersecção — de câmera ou Street View.',
+  'landing.step2.title': 'Descreva a intervenção',
+  'landing.step2.desc':
+    'Texto livre mais atalhos rápidos: ciclovia protegida, arborização, calçada alargada, mobiliário urbano.',
+  'landing.step3.title': 'A IA gera o resultado',
+  'landing.step3.desc':
+    'Fachadas, ângulo de câmera, iluminação e sinalização são preservados — compare antes/depois com o slider arrastável e exporte a imagem.',
+  'landing.footer':
+    'Construído com Next.js, Supabase (Postgres · Auth · Storage · Edge Functions) e Gemini 3 Pro Image.',
 
   'projects.title': 'Projetos',
   'projects.subtitle': 'Locais e intersecções sendo visualizados',
