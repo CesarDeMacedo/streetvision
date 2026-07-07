@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabaseClient'
 import { useI18n } from '@/lib/i18n'
@@ -151,6 +152,14 @@ export default function LoginPage() {
             </button>
           </div>
         )}
+
+        <Link
+          href="/demo"
+          className="text-center text-[12.5px]"
+          style={{ color: 'var(--blue)', textDecoration: 'none' }}
+        >
+          {t('login.viewDemo')}
+        </Link>
       </div>
     </div>
   )

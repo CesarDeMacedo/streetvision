@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/lib/i18n'
 
 type Props = {
@@ -17,6 +17,17 @@ export default function SplitView({ beforeUrl, afterUrl, emptyMessage }: Props) 
   // proporção real da foto — o container acompanha para nunca cortar a imagem
   const [ratio, setRatio] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const beforeImgRef = useRef<HTMLImageElement>(null)
+
+  function syncRatio(img: HTMLImageElement | null) {
+    if (img && img.naturalWidth > 0) setRatio(img.naturalWidth / img.naturalHeight)
+  }
+
+  // imagens estáticas (ex: /demo) podem terminar de carregar antes da
+  // hidratação — o onLoad nunca dispara; cobre esse caso via img.complete
+  useEffect(() => {
+    if (beforeImgRef.current?.complete) syncRatio(beforeImgRef.current)
+  }, [beforeUrl])
 
   function updateFromClientX(clientX: number) {
     const rect = containerRef.current?.getBoundingClientRect()
@@ -43,12 +54,11 @@ export default function SplitView({ beforeUrl, afterUrl, emptyMessage }: Props) 
       <div className="split-half split-before">
         {beforeUrl && (
           <img
+            ref={beforeImgRef}
             src={beforeUrl}
             alt="Antes — situação atual"
             draggable={false}
-            onLoad={(e) =>
-              setRatio(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight)
-            }
+            onLoad={(e) => syncRatio(e.currentTarget)}
           />
         )}
       </div>
