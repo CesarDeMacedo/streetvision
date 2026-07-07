@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabaseClient'
 import { useI18n } from '@/lib/i18n'
 import LangSwitch from '@/components/LangSwitch'
+import ThemeToggle from '@/components/ThemeToggle'
 
 type Props = {
   title: string
@@ -39,8 +40,9 @@ export default function AppShell({ title, subtitle, meta, rightPanel, children }
           </Link>
         </nav>
         <div className="nav-step-label">{t('nav.language')}</div>
-        <div style={{ padding: '0 10px' }}>
+        <div style={{ padding: '0 10px', display: 'flex', gap: 8, alignItems: 'center' }}>
           <LangSwitch />
+          <ThemeToggle />
         </div>
         <div className="nav-step-label">{t('nav.session')}</div>
         <nav className="nav">

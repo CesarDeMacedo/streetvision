@@ -20,6 +20,8 @@ const en = {
   'nav.session': 'Session',
   'nav.logout': 'Log out',
   'nav.language': 'Language',
+  'theme.toLight': 'Switch to light mode',
+  'theme.toDark': 'Switch to dark mode',
   'footer.engine':
     'Image engine: Gemini 3 Pro Image (Nano Banana Pro) · via Supabase Edge Function',
 
@@ -136,6 +138,8 @@ const fr: Record<MessageKey, string> = {
   'nav.session': 'Session',
   'nav.logout': 'Se déconnecter',
   'nav.language': 'Langue',
+  'theme.toLight': 'Passer au mode clair',
+  'theme.toDark': 'Passer au mode sombre',
   'footer.engine':
     "Moteur d'image : Gemini 3 Pro Image (Nano Banana Pro) · via Supabase Edge Function",
 
@@ -252,6 +256,8 @@ const pt: Record<MessageKey, string> = {
   'nav.session': 'Sessão',
   'nav.logout': 'Sair',
   'nav.language': 'Idioma',
+  'theme.toLight': 'Mudar para modo claro',
+  'theme.toDark': 'Mudar para modo escuro',
   'footer.engine':
     'Motor de imagem: Gemini 3 Pro Image (Nano Banana Pro) · via Supabase Edge Function',
 

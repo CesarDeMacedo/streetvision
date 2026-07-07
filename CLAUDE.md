@@ -26,6 +26,13 @@ The UI is trilingual (EN default / FR / PT) via lib/i18n.tsx — a plain diction
 Context, deliberately no i18n library. Every user-facing string must go through t(); add new
 strings to all three languages.
 
+The UI has light/dark themes (lib/theme.tsx, dark default, data-theme attribute, localStorage
+key sv-theme). Any new UI color must use an existing semantic CSS variable from globals.css
+(--hover-bg, --nav-active-fg, --green-text, --red-text, --amber-text, plus the base palette)
+or add a new variable defined in BOTH themes — never a fixed color literal in a component.
+Exception: overlays rendered on top of photos (split-view tags, empty-state overlay) use fixed
+dark translucent backgrounds by design so they stay readable on bright photos — don't theme them.
+
 All FKs have ON DELETE CASCADE (migration 20260707200000) so test users can be deleted from
 the Supabase dashboard; Storage files are NOT cascaded and become orphans.
 

@@ -16,6 +16,7 @@ Engineering and planning firms today choose between expensive manual renders (V-
 - **Supabase**: Postgres (with RLS), Auth, Storage (private buckets + signed URLs), Edge Functions
 - **Gemini 3 Pro Image** ("Nano Banana Pro") via `generateContent`, called only from a Supabase Edge Function — the Gemini API key never reaches the browser
 - Interface in **3 languages** (English default, French, Portuguese) with a runtime switcher — no i18n library, just a dictionary + React Context
+- **Light/dark theme toggle** (dark default), same no-library pattern: CSS variables + React Context, persisted in `localStorage`
 
 ## Why Gemini 3 Pro Image (and not 2.5 Flash Image)
 
@@ -49,3 +50,4 @@ Then open http://localhost:3000, create an account (email confirmation required)
 - **Cost control**: every generation is metered — the Edge Function checks and increments a per-user daily quota (`generation_limits`) *server-side*, so it can't be bypassed by calling the API directly.
 - **Impact metrics are simulated**: the stat cards and "Proposal Elements" list show fixed example values, clearly badged "SIMULATED DATA" in the UI (`lib/mockImpact.ts` documents the contract for swapping in real calculations later).
 - The prompt template explicitly instructs preservation of building facades, camera angle, lighting and all existing text/signage — see `supabase/functions/generate-image/index.ts`.
+- **Design decision — overlays on photos are theme-independent**: the "BEFORE — CURRENT" / "AFTER — PROPOSED" tags (and the split-view empty-state overlay) sit on top of the photo, not on themed surfaces. Translucent colored pills were unreadable over a bright sunny sky, so they use a fixed dark translucent base + light text + text-shadow that stays legible on any photo in either theme — don't "theme" them.

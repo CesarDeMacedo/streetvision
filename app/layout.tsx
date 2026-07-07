@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import { LanguageProvider } from '@/lib/i18n'
+import { ThemeProvider } from '@/lib/theme'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -22,7 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       {/* suppressHydrationWarning: extensões de navegador (ex: Grammarly) injetam
           atributos no <body> antes da hidratação; só silencia atributos deste elemento */}
       <body className={`${inter.variable} ${grotesk.variable}`} suppressHydrationWarning>
-        <LanguageProvider>{children}</LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

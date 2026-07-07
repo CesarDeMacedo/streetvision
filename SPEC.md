@@ -111,7 +111,25 @@ sobe o resultado em `generated-images` → marca `done` (ou `failed`, exibindo o
 (next-intl etc.), sem rotas por idioma, sem SEO multilíngue — só troca de texto na interface.
 Mensagens de erro vindas do servidor (Edge Function) permanecem em inglês.
 
-## 6. Métricas de impacto (simuladas)
+## 6. Tema claro/escuro
+
+`lib/theme.tsx`: mesmo padrão do i18n — Context (`ThemeProvider` / `useTheme`) + `localStorage`
+(chave `sv-theme`), **escuro como padrão**, aplicado via atributo `data-theme` no `<html>`. As
+paletas vivem em `globals.css`: `:root` define o tema escuro e `:root[data-theme='light']`
+sobrescreve. O azul `#3b82f6` é identidade visual e permanece igual nos dois temas. Toggle
+sol/lua ao lado do seletor de idioma (sidebar e login).
+
+Além das variáveis de cor originais do mockup, existem **variáveis semânticas** criadas para os
+pontos onde os temas precisam de valores próprios: `--hover-bg`, `--nav-active-fg`,
+`--green-text`, `--red-text`, `--amber-text` (usadas em hover de navegação, badges de status,
+stat cards e no badge "SIMULATED DATA"). Cores novas na UI devem seguir essa regra (ver CLAUDE.md).
+
+**Exceção deliberada — overlays sobre foto:** as tags do Split View ("BEFORE/AFTER"), o overlay
+de estado vazio e o handle ficam sobre a imagem, não sobre superfícies do tema. Usam base escura
+translúcida fixa + texto claro + text-shadow, legíveis sobre céu claro em qualquer tema — não
+convertê-los para variáveis de tema.
+
+## 7. Métricas de impacto (simuladas)
 
 `lib/mockImpact.ts`: stat cards (Faixas de Carro, Área Verde, Capacidade Ciclistas, Impacto no Tráfego)
 e lista "Elementos da Proposta", com os valores fixos do mockup validado. Ambas as seções levam o badge
@@ -119,7 +137,7 @@ e lista "Elementos da Proposta", com os valores fixos do mockup validado. Ambas 
 Contrato para o futuro: substituir as constantes por uma função (ex: `computeImpact(project, viz)`)
 mantendo o mesmo shape — a UI não muda. Nenhum cálculo real é feito no MVP.
 
-## 7. Histórico de construção (etapas concluídas)
+## 8. Histórico de construção (etapas concluídas)
 
 1. ✅ Edge Function `generate-image` adaptada do provador digital e deployada **antes de qualquer tela**
 2. ✅ Validação manual do prompt com fotos reais (2 rodadas de ajuste: preservação de texto no prompt → troca de modelo)
@@ -129,5 +147,6 @@ mantendo o mesmo shape — a UI não muda. Nenhum cálculo real é feito no MVP.
 6. ✅ Correção de responsividade do Split View (aspect-ratio; testado em 1920px e 1366px)
 7. ✅ Métricas simuladas + i18n (EN/FR/PT) + drag-and-drop com preview
 8. ✅ Cascade deletes (migração 2)
-9. ⏳ Deploy no Vercel (env vars: `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`;
-   configurar Site URL do Auth no Supabase para o domínio de produção)
+9. ✅ Deploy no Vercel (env vars: `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`;
+   Site URL do Auth no Supabase apontando para o domínio de produção)
+10. ✅ Tema claro/escuro com toggle, persistência e ajuste de contraste dos overlays sobre foto

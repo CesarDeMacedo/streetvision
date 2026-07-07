@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabaseClient'
 import { useI18n } from '@/lib/i18n'
 import LangSwitch from '@/components/LangSwitch'
+import ThemeToggle from '@/components/ThemeToggle'
 
 type Mode = 'login' | 'signup'
 
@@ -74,7 +75,10 @@ export default function LoginPage() {
               STREETVISION<span>ENGAGEMENT AI</span>
             </div>
           </div>
-          <LangSwitch />
+          <div className="flex items-center gap-2">
+            <LangSwitch />
+            <ThemeToggle />
+          </div>
         </div>
 
         {checkEmail ? (
